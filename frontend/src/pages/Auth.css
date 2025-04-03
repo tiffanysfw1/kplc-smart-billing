@@ -1,0 +1,119 @@
+body {
+  font-family: 'Poppins', sans-serif;
+  background: linear-gradient(135deg, #1e3c72, #2a5298, #f1c40f);
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.auth-container {
+  text-align: center;
+  padding: 50px 20px;
+}
+
+h1 {
+  color: #2c3e50;
+  font-weight: 600;
+}
+
+.login-box {
+  background: #ffffff;
+  padding: 30px;
+  width: 380px;
+  margin: 0 auto;
+  border-radius: 12px;
+  box-shadow: 4px 6px 18px rgba(0, 0, 0, 0.15);
+}
+
+input {
+  width: 100%;
+  padding: 12px;
+  margin: 12px 0;
+  border: 2px solid #ccc;
+  border-radius: 8px;
+  transition: border 0.3s ease;
+}
+input:not(:last-child) {
+  margin-bottom: 15px; /* Controls spacing between email & password */
+}
+
+input:focus {
+  border-color: #2980b9;
+  outline: none;
+}
+
+.password-container {
+  display: flex;
+  align-items: center;
+  position: relative;
+}
+
+.toggle-password {
+  position: absolute;
+  right: 15px;
+  cursor: pointer;
+  font-size: 18px;
+  color: #666;
+}
+
+.remember-me {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #333;
+}
+
+.login-button {
+  width: 100%;
+  padding: 14px;
+  background: #2980b9;
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-size: 17px;
+  cursor: pointer;
+  transition: background 0.3s, transform 0.2s;
+}
+
+.login-button:hover {
+  background: #1f6aa5;
+  transform: scale(1.05);
+}
+
+.error-message {
+  color: red;
+  font-size: 14px;
+  margin-bottom: 10px;
+}
+
+.login-links {
+  margin-top: 20px;
+}
+
+.forgot-password {
+  display: block;
+  margin-bottom: 10px;
+  color: #2980b9;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.forgot-password:hover {
+  text-decoration: underline;
+}
+
+.sign-up-link {
+  color: #e74c3c;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.sign-up-link:hover {
+  text-decoration: underline;
+}
+.remember-me input {
+  width: auto; /* Ensure checkbox stays small */
+  margin: 0; /* Remove extra margin */
+}
