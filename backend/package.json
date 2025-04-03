@@ -1,14 +1,16 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "main": "index.js",
+  "description": "KPLC Smart Billing Backend",
+  "main": "backend/server.js",
   "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
+  "keywords": ["billing", "kplc", "tokens", "express"],
   "author": "",
   "license": "ISC",
-  "description": "",
   "dependencies": {
     "axios": "^1.8.3",
     "body-parser": "^1.20.3",
@@ -18,5 +20,8 @@
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.12.1",
     "pg": "^8.14.1"
+  },
+  "devDependencies": {
+    "nodemon": "^3.0.0"
   }
 }
