@@ -3,6 +3,7 @@ import axios from "axios";
 import { Bar, Line } from "react-chartjs-2";
 import Navbar from "../components/Navbar";
 import Sidebar from "../components/Sidebar";
+import jsPDF from "jspdf"; // ✅ Static import
 import "chart.js/auto";
 import "./Dashboard.css";
 
@@ -17,7 +18,9 @@ const Dashboard = () => {
 
   const fetchCustomerData = async () => {
     try {
-      const response = await axios.get("http://localhost:5000/dashboard-data");
+      const response = await axios.get(
+        import.meta.env.VITE_BACKEND_URL + "/dashboard-data"
+      );
       setConsumptionData(response.data.consumption);
       setBillingData(response.data.billing);
       setPaymentData(response.data.payments || []);
@@ -53,12 +56,16 @@ const Dashboard = () => {
     datasets: [
       {
         label: "Payments Made (Ksh)",
-        data: paymentData.map((data) => data.status === "purchased" ? data.amount : 0),
+        data: paymentData.map((data) =>
+          data.status === "purchased" ? data.amount : 0
+        ),
         backgroundColor: "rgba(75, 192, 192, 0.7)",
       },
       {
         label: "Pending Payments (Ksh)",
-        data: paymentData.map((data) => data.status === "pending" ? data.amount : 0),
+        data: paymentData.map((data) =>
+          data.status === "pending" ? data.amount : 0
+        ),
         backgroundColor: "rgba(255, 159, 64, 0.7)",
       },
     ],
@@ -71,35 +78,49 @@ const Dashboard = () => {
         label: "Cumulative Payments (Ksh)",
         data: paymentData.reduce((acc, data, index) => {
           const previous = index === 0 ? 0 : acc[index - 1];
-          return [...acc, previous + (data.status === "purchased" ? data.amount : 0)];
+          return [
+            ...acc,
+            previous + (data.status === "purchased" ? data.amount : 0),
+          ];
         }, []),
         backgroundColor: "rgba(153, 102, 255, 0.7)",
       },
     ],
   };
 
-  const generateReport = async () => {
-    const { jsPDF } = await import("jspdf"); // ✅ Dynamic import
+  const generateReport = () => {
     const doc = new jsPDF();
     doc.text("Electricity Consumption Report", 20, 10);
     let y = 20;
 
     consumptionData.forEach((item, index) => {
-      doc.text(`${index + 1}. Date: ${item.date} - Usage: ${item.usage} kWh`, 20, y);
+      doc.text(
+        `${index + 1}. Date: ${item.date} - Usage: ${item.usage} kWh`,
+        20,
+        y
+      );
       y += 10;
     });
 
     doc.text("Billing History", 20, y + 10);
     y += 20;
     billingData.forEach((item, index) => {
-      doc.text(`${index + 1}. Date: ${item.date} - Amount: ${item.amount} Ksh`, 20, y);
+      doc.text(
+        `${index + 1}. Date: ${item.date} - Amount: ${item.amount} Ksh`,
+        20,
+        y
+      );
       y += 10;
     });
 
     doc.text("Payment History", 20, y + 10);
     y += 20;
     paymentData.forEach((item, index) => {
-      doc.text(`${index + 1}. Date: ${item.date} - Amount: ${item.amount} Ksh - Status: ${item.status}`, 20, y);
+      doc.text(
+        `${index + 1}. Date: ${item.date} - Amount: ${item.amount} Ksh - Status: ${item.status}`,
+        20,
+        y
+      );
       y += 10;
     });
 
