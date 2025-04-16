@@ -1,17 +1,21 @@
 const express = require("express");
 const cors = require("cors");
-const pool = require("./db"); // Import database connection
-const authRoutes = require("./routes/auth"); // Import authentication routes
+const pool = require("./db"); // PostgreSQL connection
+const authRoutes = require("./routes/auth"); // Authentication routes
 const dashboardRoutes = require("./routes/dashboard");
 
 const app = express();
-const PORT = 5000;
+const PORT = process.env.PORT || 5000; // Dynamic port for production
+
+console.log("authRoutes type:", typeof authRoutes); // Should be function
+console.log("dashboardRoutes type:", typeof dashboardRoutes); // Should be function
+
 
 // ✅ Middleware
 app.use(cors());
-app.use(express.json()); // Replaces bodyParser.json()
+app.use(express.json()); // Built-in body parser
 
-// ✅ Root route (to check if the server is running)
+// ✅ Root route (for server check)
 app.get("/", (req, res) => {
   res.send("🚀 KPLC Smart Billing API is running...");
 });
@@ -19,17 +23,16 @@ app.get("/", (req, res) => {
 // 🔹 Helper function to generate a random 12-digit token
 const generateToken = () => Math.floor(100000000000 + Math.random() * 900000000000).toString();
 
-// Constants for payment methods
+// 🔹 Constants for payment methods
 const PAYMENT_METHODS = {
   MPESA: "mpesa",
   BANK: "bank",
 };
 
 // ✅ Route to buy tokens
-app.post("/buy-tokens", (req, res) => {
+app.post("/buy-tokens", async (req, res) => {
   const { meterNumber, amount, phoneNumber, paymentMethod } = req.body;
 
-  // 🔹 Validate input
   if (!meterNumber || !amount || !phoneNumber || !paymentMethod) {
     return res.status(400).json({ error: "⚠️ All fields are required!" });
   }
@@ -41,7 +44,6 @@ app.post("/buy-tokens", (req, res) => {
   let responseMessage = "";
   let transactionStatus = "pending";
 
-  // 🔹 Simulated Payment Processing
   if (paymentMethod === PAYMENT_METHODS.MPESA) {
     responseMessage = "📲 M-Pesa STK Push sent! Approve payment...";
     transactionStatus = "processing";
@@ -55,31 +57,28 @@ app.post("/buy-tokens", (req, res) => {
   // 🔹 Generate a random token
   const token = generateToken();
 
-  // 🔹 Save transaction (Replace this with a database later)
-  const newTransaction = {
-    meterNumber,
-    amount,
-    phoneNumber,
-    paymentMethod,
-    token,
-    status: transactionStatus,
-    timestamp: new Date().toISOString(),
-  };
+  try {
+    // 🔹 Save transaction to PostgreSQL
+    const newTransaction = await pool.query(
+      "INSERT INTO transactions (meter_number, amount, phone_number, payment_method, token, status, timestamp) VALUES ($1, $2, $3, $4, $5, $6, NOW()) RETURNING *",
+      [meterNumber, amount, phoneNumber, paymentMethod, token, transactionStatus]
+    );
 
-  // Instead of using an array, store this in a database.
-  // createTransaction(newTransaction); 
-
-  return res.json({
-    message: responseMessage,
-    token,
-    transaction: newTransaction,
-  });
+    return res.json({
+      message: responseMessage,
+      token,
+      transaction: newTransaction.rows[0],
+    });
+  } catch (error) {
+    console.error("❌ Error saving transaction:", error);
+    return res.status(500).json({ error: "❌ Server error while processing transaction" });
+  }
 });
 
-// ✅ Route to fetch all transactions (for tracking & reports)
+// ✅ Route to fetch all transactions
 app.get("/transactions", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM transactions");
+    const result = await pool.query("SELECT * FROM transactions ORDER BY timestamp DESC");
     res.json(result.rows);
   } catch (error) {
     console.error("❌ Error fetching transactions:", error);
@@ -87,32 +86,34 @@ app.get("/transactions", async (req, res) => {
   }
 });
 
-// Example backend route in Express.js (Node.js)
+// ✅ Route to fetch payment history
 app.get("/payment-history", async (req, res) => {
   try {
-    const history = await Payment.find(); // Assuming you use a database model named "Payment"
-    res.json(history);
+    const result = await pool.query("SELECT * FROM payments ORDER BY created_at DESC");
+    res.json(result.rows);
   } catch (error) {
-    res.status(500).json({ error: "Failed to fetch payment history." });
+    console.error("❌ Error fetching payment history:", error);
+    res.status(500).json({ error: "❌ Failed to fetch payment history." });
   }
 });
 
+// ✅ Route to fetch tokens
 app.get("/tokens", async (req, res) => {
   try {
-    const result = await pool.query("SELECT * FROM token_purchases");
-    res.json(result.rows);  // Send the list of token purchases
+    const result = await pool.query("SELECT * FROM token_purchases ORDER BY purchase_date DESC");
+    res.json(result.rows);
   } catch (error) {
-    console.error("Error fetching tokens:", error);
-    res.status(500).send("Error fetching tokens");
+    console.error("❌ Error fetching tokens:", error);
+    res.status(500).json({ error: "❌ Error fetching tokens" });
   }
 });
 
-// ✅ Authentication routes
+// ✅ Authentication & Dashboard Routes
 app.use("/api/auth", authRoutes);
-app.use("/", dashboardRoutes);
+app.use("/api/dashboard", dashboardRoutes);
 
 // ✅ Start Server
 app.listen(PORT, () => {
   console.log(`🚀 Server running on http://localhost:${PORT}`);
-  console.log("✅ Dashboard routes loaded");
+  console.log("✅ Routes initialized successfully!");
 });
