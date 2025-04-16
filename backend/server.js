@@ -7,12 +7,21 @@ const dashboardRoutes = require("./routes/dashboard");
 const app = express();
 const PORT = process.env.PORT || 5000; // Dynamic port for production
 
-console.log("authRoutes type:", typeof authRoutes); // Should be function
-console.log("dashboardRoutes type:", typeof dashboardRoutes); // Should be function
+// ✅ CORS Configuration: Allow only Vercel frontend and local development URLs
+const allowedOrigins = [
+  "https://your-vercel-frontend-url.vercel.app",  // Replace with your actual Vercel frontend URL
+  "http://localhost:5173",  // Local development URL for testing
+];
 
+// Use CORS middleware to allow requests from specific origins
+app.use(
+  cors({
+    origin: allowedOrigins,  // Allow only these origins to access your backend
+    credentials: true,        // Allow credentials (cookies, sessions) in requests
+  })
+);
 
 // ✅ Middleware
-app.use(cors());
 app.use(express.json()); // Built-in body parser
 
 // ✅ Root route (for server check)
