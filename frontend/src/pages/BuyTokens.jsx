@@ -23,11 +23,19 @@ const BuyTokens = () => {
   // List of 47 Kenyan counties
   const counties = [
     "Nairobi", "Mombasa", "Kisumu", "Nakuru", "Kiambu", "Machakos", "Uasin Gishu", "Meru", "Kakamega", "Embu",
-    "Nyeri", "Kisii", "Bungoma",  "Narok", "Kericho", "Homa Bay", "Kitui", "Laikipia", "Kilifi",
-    "Baringo", "Vihiga", "Siaya", "Mandera", "Marsabit", "Samburu", "Kwale", "Turkana", "Garissa", "Tana River",
-    "Elgeyo Marakwet", "Trans Nzoia", "Wajir", "West Pokot", "Lamu", "Tharaka Nithi", "Taita Taveta", "Isiolo",
-    "Nandi", "Bomet", "Busia", "Migori", "Kajiado", "Nyandarua", "Makueni", "Nyamira", "Taveta"
+    "Nyeri", "Kisii", "Bungoma", "Narok", "Kericho", "Homa Bay", "Kitui", "Laikipia", "Kilifi", "Baringo", "Vihiga",
+    "Siaya", "Mandera", "Marsabit", "Samburu", "Kwale", "Turkana", "Garissa", "Tana River", "Elgeyo Marakwet", "Trans Nzoia",
+    "Wajir", "West Pokot", "Lamu", "Tharaka Nithi", "Taita Taveta", "Isiolo", "Nandi", "Bomet", "Busia", "Migori", "Kajiado",
+    "Nyandarua", "Makueni", "Nyamira", "Taveta"
   ];
+
+  // Function to format phone number to international format (Kenya)
+  const formatPhoneNumber = (phone) => {
+    if (phone.startsWith("0")) {
+      return `254${phone.slice(1)}`; // Replace leading '0' with '254'
+    }
+    return phone; // Assume it's already in the correct format
+  };
 
   const handlePurchase = async (e) => {
     e.preventDefault();
@@ -48,10 +56,14 @@ const BuyTokens = () => {
       return;
     }
 
-    if (paymentMethod === "mpesa" && (!phoneNumber || phoneNumber.length !== 10)) {
-      setMessage("⚠️ Phone number must be exactly 10 digits.");
-      setIsLoading(false);
-      return;
+    // If payment method is MPESA, validate phone number format
+    if (paymentMethod === "mpesa") {
+      const formattedPhoneNumber = formatPhoneNumber(phoneNumber);
+      if (formattedPhoneNumber.length !== 12 || !formattedPhoneNumber.startsWith("254")) {
+        setMessage("⚠️ Phone number must be in the correct international format (e.g., +254701234567).");
+        setIsLoading(false);
+        return;
+      }
     }
 
     if (paymentMethod === "bank" && (!accountNumber || !selectedCounty)) {
@@ -70,7 +82,7 @@ const BuyTokens = () => {
       const response = await axios.post("http://localhost:5000/buy-tokens", {
         meterNumber,
         amount,
-        phoneNumber: paymentMethod === "mpesa" ? phoneNumber : null,
+        phoneNumber: paymentMethod === "mpesa" ? formatPhoneNumber(phoneNumber) : null,
         paymentMethod,
         selectedBank,
         accountNumber,
