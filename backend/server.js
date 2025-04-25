@@ -11,6 +11,23 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
+// ✅ CORS Configuration: Allow only Vercel frontend and local development URLs
+const allowedOrigins = [
+  "https://your-vercel-frontend-url.vercel.app",  // Replace with your actual Vercel frontend URL
+  "http://localhost:5173",  // Local development URL for testing
+];
+
+// Use CORS middleware to allow requests from specific origins
+app.use(
+  cors({
+    origin: allowedOrigins,  // Allow only these origins to access your backend
+    credentials: true,        // Allow credentials (cookies, sessions) in requests
+  })
+);
+
+// ✅ Middleware
+app.use(express.json()); // Built-in body parser
+
 // ✅ Root
 app.get("/", (req, res) => {
   res.send("🚀 KPLC C2B API running...");
